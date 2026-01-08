@@ -14,12 +14,15 @@ public class UsersController : ControllerBase
     private readonly AppDbContext _context;
     public UsersController(AppDbContext context) => _context = context;
 
-    
+
     [HttpPost]
     public async Task<IActionResult> Register(RegisterUserDto dto)
     {
-        if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-            return Conflict("Email already exists");
+        var emailExists = await _context.Users
+            .AnyAsync(u => u.Email == dto.Email);
+
+        if (emailExists)
+            return Conflict(new { message = "Email already registered" });
 
         var hasher = new PasswordHasher<User>();
 
@@ -34,13 +37,9 @@ public class UsersController : ControllerBase
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return Ok(new
-        {
-            user.Id,
-            user.Name,
-            user.Email
-        });
+        return StatusCode(201, new { message = "User registered successfully" });
     }
+
 
 
     [HttpGet]
@@ -51,6 +50,11 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var user = await _context.Users.FindAsync(id);
-        return user == null ? NotFound() : Ok(user);
+
+        if (user == null)
+            return NotFound(new { message = $"Task with id {id} not found" });
+
+        return Ok(user);
     }
+
 }

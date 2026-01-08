@@ -28,7 +28,7 @@ namespace TaskManagementSystemAPI.Controllers
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == dto.Email);
             if (user == null)
-                return Unauthorized("Invalid credentials");
+                return Unauthorized(new { message = "Invalid credentials" });
 
             var hasher = new PasswordHasher<User>();
             var result = hasher.VerifyHashedPassword(
@@ -38,7 +38,7 @@ namespace TaskManagementSystemAPI.Controllers
             );
 
             if (result == PasswordVerificationResult.Failed)
-                return Unauthorized("Invalid credentials");
+                return Unauthorized(new { message = "Invalid credentials" });
 
             var claims = new[]
             {

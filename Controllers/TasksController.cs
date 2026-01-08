@@ -18,8 +18,9 @@ public class TasksController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(TaskDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        var userExists = await _context.Users.AnyAsync(u => u.Id == dto.AssignedToId);
+        if (!userExists)
+            return NotFound(new { message = "Assigned user not found" });
 
         var task = new TaskItem
         {
@@ -27,7 +28,7 @@ public class TasksController : ControllerBase
             Description = dto.Description,
             Status = dto.Status,
             Priority = dto.Priority,
-            DueDate = dto.DueDate,
+            DueDate = dto.DueDate?.ToUniversalTime(),
             AssignedToId = dto.AssignedToId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -36,8 +37,13 @@ public class TasksController : ControllerBase
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = task.Id },
+            task
+        );
     }
+
 
 
     [HttpGet]

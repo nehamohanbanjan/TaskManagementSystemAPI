@@ -5,20 +5,22 @@ namespace TaskManagementSystemAPI.DTO
 {
     public class TaskDto
     {
-        [Required]
-        [MinLength(3)]
+        [Required(ErrorMessage = "Title is required")]
         [MaxLength(100)]
-        public string Title { get; set; } = string.Empty;
+        public string Title { get; set; } = null!;
 
         [MaxLength(500)]
         public string? Description { get; set; }
 
-        public TaskItemStatus Status { get; set; } = TaskItemStatus.TODO;
+        [Required]
+        public TaskItemStatus Status { get; set; }
 
-        public TaskPriority Priority { get; set; } = TaskPriority.MEDIUM;
+        [Required]
+        public TaskPriority Priority { get; set; }
 
         public DateTime? DueDate { get; set; }
 
-        public int? AssignedToId { get; set; }
+        [Required(ErrorMessage = "Assigned user is required")]
+        public int AssignedToId { get; set; }
     }
 }
