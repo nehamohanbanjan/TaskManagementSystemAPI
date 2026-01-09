@@ -10,7 +10,7 @@ public class TaskItem
     public int Id { get; set; }
 
     [Required, MinLength(3), MaxLength(100)]
-    public string Title { get; set; } = string.Empty;
+    public required string Title { get; set; }
 
     [MaxLength(500)]
     public string? Description { get; set; }

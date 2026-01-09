@@ -47,9 +47,47 @@ public class TasksController : ControllerBase
 
 
     [HttpGet]
-    public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10)
-        => Ok(await _context.Tasks.Include(t => t.AssignedTo)
-            .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync());
+public async Task<IActionResult> GetTasks([FromQuery] TaskFilterDto filter)
+{
+    var query = _context.Tasks
+        .Include(t => t.AssignedTo)
+        .AsQueryable();
+
+
+
+    if (filter.Status.HasValue)
+        query = query.Where(t => t.Status == filter.Status.Value);
+
+
+    if (filter.Priority.HasValue)
+        query = query.Where(t => t.Priority == filter.Priority.Value);
+
+
+    if (filter.AssignedToUserId.HasValue)
+        query = query.Where(t => t.AssignedToId == filter.AssignedToUserId);
+
+    if (filter.DueDateFrom.HasValue)
+        query = query.Where(t => t.DueDate >= filter.DueDateFrom);
+
+    if (filter.DueDateTo.HasValue)
+        query = query.Where(t => t.DueDate <= filter.DueDateTo);
+
+    var totalCount = await query.CountAsync();
+
+    var tasks = await query
+        .Skip((filter.Page - 1) * filter.PageSize)
+        .Take(filter.PageSize)
+        .ToListAsync();
+
+    return Ok(new
+    {
+        totalCount,
+        filter.Page,
+        filter.PageSize,
+        data = tasks
+    });
+}
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
@@ -57,6 +95,28 @@ public class TasksController : ControllerBase
         var task = await _context.Tasks.FindAsync(id);
         return task == null ? NotFound() : Ok(task);
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateTask(int id, TaskDto dto)
+    {
+        var task = await _context.Tasks.FindAsync(id);
+
+        if (task == null)
+            return NotFound(new { message = "Task not found" });
+
+        task.Title = dto.Title;
+        task.Description = dto.Description;
+        task.Status = dto.Status;
+        task.Priority = dto.Priority;
+        task.DueDate = dto.DueDate;
+        task.AssignedToId = dto.AssignedToId;
+        task.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(task);
+    }
+
 
     [HttpPatch("{id}/status")]
     public async Task<IActionResult> UpdateStatus(int id, TaskItemStatus status)
@@ -68,6 +128,7 @@ public class TasksController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(task);
     }
+
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
