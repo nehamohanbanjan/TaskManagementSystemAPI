@@ -12,16 +12,10 @@ namespace TaskManagementSystemAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController(AppDbContext context, IConfiguration config) : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IConfiguration _config;
-
-        public AuthController(AppDbContext context, IConfiguration config)
-        {
-            _context = context;
-            _config = config;
-        }
+        private readonly AppDbContext _context = context;
+        private readonly IConfiguration _config = config;
 
         [HttpPost("login")]
         public IActionResult Login(LoginDto dto)

@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TaskManagementSystemAPI.Data;
+using TaskManagementSystemAPI.Services;
+using TaskManagementSystemAPI.Services.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,23 +69,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
 
 var app = builder.Build();
 
-// Global exception handling
-app.UseExceptionHandler(errorApp =>
-{
-    errorApp.Run(async context =>
-    {
-        context.Response.StatusCode = 500;
-        context.Response.ContentType = "application/json";
 
-        await context.Response.WriteAsJsonAsync(new
-        {
-            message = "An unexpected error occurred"
-        });
-    });
-});
 
 if (app.Environment.IsDevelopment())
 {

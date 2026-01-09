@@ -20,7 +20,6 @@ namespace TaskManagementSystemAPI.DTO
 
         public DateTime? DueDate { get; set; }
 
-        [Required(ErrorMessage = "Assigned user is required")]
-        public int AssignedToId { get; set; }
+        public int? AssignedToId { get; set; }
     }
 }
